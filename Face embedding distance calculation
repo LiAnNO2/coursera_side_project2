@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. 隨機生成人臉嵌入特徵
+def generate_embeddings(num_samples, embedding_dim):
+    return np.random.rand(num_samples, embedding_dim)
+
+# 2. 計算歐幾里得距離
+def calculate_distance(embedding1, embedding2):
+    return np.linalg.norm(embedding1 - embedding2)
+
+# 3. 模擬人臉數據
+def simulate_face_data(num_pairs, embedding_dim):
+    # 隨機生成嵌入
+    embeddings = generate_embeddings(num_pairs * 2, embedding_dim)
+    pairs = [(embeddings[i], embeddings[i + num_pairs]) for i in range(num_pairs)]
+    
+    # 標籤：一半為同一人 (label=1)，一半為不同人 (label=0)
+    labels = np.array([1] * (num_pairs // 2) + [0] * (num_pairs // 2))
+    np.random.shuffle(labels)  # 打亂標籤
+    return pairs, labels
+
+# 4. 判斷是否同一人
+def classify_pairs(pairs, labels, tau):
+    predictions = []
+    for pair, label in zip(pairs, labels):
+        dist = calculate_distance(pair[0], pair[1])
+        predictions.append(1 if dist < tau else 0)
+    return np.array(predictions)
+
+# 5. 計算準確率
+def calculate_accuracy(predictions, labels):
+    return np.mean(predictions == labels)
+
+# 主程序
+if __name__ == "__main__":
+    # 配置參數
+    NUM_PAIRS = 1000  # 配對數
+    EMBEDDING_DIM = 128  # 嵌入向量維度
+    taus = np.linspace(0.5, 2.0, 20)  # 不同閾值
+    accuracies = []
+
+    # 生成數據
+    pairs, labels = simulate_face_data(NUM_PAIRS, EMBEDDING_DIM)
+
+    # 測試不同閾值
+    for tau in taus:
+        predictions = classify_pairs(pairs, labels, tau)
+        accuracy = calculate_accuracy(predictions, labels)
+        accuracies.append(accuracy)
+
+    # 繪製準確率與閾值的關係圖
+    plt.figure(figsize=(8, 6))
+    plt.plot(taus, accuracies, marker='o')
+    plt.xlabel("Threshold (τ)")
+    plt.ylabel("Accuracy")
+    plt.title("Accuracy vs Threshold")
+    plt.grid()
+    plt.show()
